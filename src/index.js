@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import { query, healthCheck } from './db.js';
 import healthRoutes from './routes/health.js';
 import notesRoutes from './routes/notes.js';
+import { collectDefaultMetrics, register, Counter, Histogram} from 'prom-client';
 
 // Load environment variables
 dotenv.config();
@@ -16,14 +17,63 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Prometheus standaardmetrics: CPU, geheugen en event loop
+collectDefaultMetrics({register});
+
+// Totaal aantal HTTP-requests
+const httpRequests = new Counter({
+  name: 'http_requests_total',
+  help: 'Total HTTP requests',
+  labelNames: ['method', 'path', 'status']
+});
+
+// Duur van HTTP-requests
+const httpDuration = new Histogram({
+  name: 'http_request_duration_seconds',
+  help: 'HTTP request duration in seconds',
+  labelNames: ['method', 'path'],
+  buckets: [0.01, 0.05, 0.1, 0.5, 1, 5]
+});
+
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
+// Meet iedere HTTP-request
+app.use((req, res, next) => {
+  const start = process.hrtime.bigint();
+
+  res.on('finish', () => {
+    const duration =
+        Number(process.hrtime.bigint() - start) / 1_000_000_000;
+
+    httpRequests.inc({
+      method: req.method,
+      path: req.path,
+      status: res.statusCode
+    });
+
+    httpDuration.observe(
+        {
+          method: req.method,
+          path: req.path
+        },
+        duration
+    );
+  });
+
+  next();
+});
 
 // Set view engine
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
+
+// Prometheus metrics endpoint
+app.get('/metrics', async (_req, res) => {
+  res.set('Content-Type', register.contentType);
+  res.end(await register.metrics());
+});
 
 // Routes
 app.use('/health', healthRoutes);
@@ -94,5 +144,7 @@ process.on('SIGTERM', () => {
     process.exit(0);
   });
 });
+
+
 
 export default app;
