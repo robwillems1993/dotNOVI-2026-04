@@ -31,7 +31,7 @@ resource "kubernetes_deployment" "dotnovi" {
   }
 
   spec {
-    replicas = 4
+    replicas = 3
 
     selector {
       match_labels = {

@@ -82,7 +82,8 @@ app.use('/api/notes', notesRoutes);
 app.get('/about', (req, res) => {
   res.json({
     message: 'About page',
-    application: 'dotNOVI'
+    application: 'dotNOVI',
+    version: '1.2.5'
   })
 })
 

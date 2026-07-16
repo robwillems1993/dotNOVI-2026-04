@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [feature/add-about-page]
+    branches: [main]
   pull_request:
-    branches: [feature/add-about-page]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -13,7 +13,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18, 20, 24]
+        node-version: [20]
 
     steps:
       - name: Checkout code
