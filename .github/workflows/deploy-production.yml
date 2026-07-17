@@ -17,9 +17,9 @@ jobs:
 
       - name: Smoke test
         run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://dotnovi-2026-04-ul0x.onrender.com/health)
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://dotnovi-2026-04-ul0x.onrender.com/about)
           if [ "$STATUS" != "200" ]; then
-            echo "Health check failed with status $STATUS"
-            exit 1
+          echo "Smoke test failed with status $STATUS"
+          exit 1
           fi
           echo "Deploy successful!"
