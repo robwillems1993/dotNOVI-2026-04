@@ -83,7 +83,7 @@ app.get('/about', (req, res) => {
   res.json({
     message: 'About page',
     application: 'dotNOVI',
-    version: '1.2.5'
+    version: '2.0.0'
   })
 })
 
